@@ -1,0 +1,5 @@
+node_modules/
+output/
+schematic/*.schem
+*.log
+.DS_Store

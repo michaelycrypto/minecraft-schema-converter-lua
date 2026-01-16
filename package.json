@@ -1,0 +1,24 @@
+{
+  "name": "schema-converter",
+  "version": "0.2.0",
+  "description": "Convert Minecraft schematics (WorldEdit, Litematica) into optimized Lua/JSON tables for Roblox voxel engines with RLE compression and compact metadata.",
+  "main": "src/convert.js",
+  "type": "commonjs",
+  "scripts": {
+    "convert": "node src/convert.js"
+  },
+  "keywords": [
+    "minecraft",
+    "schematic",
+    "roblox",
+    "voxel",
+    "converter",
+    "worldedit",
+    "litematica"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "prismarine-nbt": "^2.1.0"
+  }
+}
