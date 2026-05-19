@@ -53,6 +53,20 @@ const AIR_BLOCKS = new Set([
   "lever",
 ]);
 
+// Blocks to exclude from conversion (unmapped blocks)
+const EXCLUDED_BLOCKS = new Set([
+  "minecraft:potted_cactus",
+  "potted_cactus",
+  "minecraft:red_bed",
+  "red_bed",
+  "minecraft:potted_fern",
+  "potted_fern",
+  "minecraft:potted_poppy",
+  "potted_poppy",
+  "minecraft:white_wall_banner",
+  "white_wall_banner",
+]);
+
 // State abbreviation mappings for compact metadata
 const STATE_KEY_ABBREV = {
   facing: "f",
@@ -249,6 +263,19 @@ function isAirBlock(block) {
     return AIR_BLOCKS.has(block.name) || AIR_BLOCKS.has(block.name.split("[")[0]);
   }
   return block.id === 0;
+}
+
+function isExcludedBlock(block) {
+  if (block.name) {
+    const baseName = block.name.split("[")[0];
+    const withoutPrefix = baseName.replace(/^minecraft:/, "");
+    return EXCLUDED_BLOCKS.has(block.name) ||
+           EXCLUDED_BLOCKS.has(baseName) ||
+           EXCLUDED_BLOCKS.has(withoutPrefix);
+  }
+  // For numeric IDs, we'd need to check after conversion, but this is handled
+  // in buildChunkedData after blockKey conversion
+  return false;
 }
 
 /**
@@ -1192,15 +1219,25 @@ function buildChunkedData(schematic, options) {
     // Skip air unless requested
     if (!includeAir && isAirBlock(block)) continue;
 
+    // Skip excluded blocks (unmapped blocks)
+    if (isExcludedBlock(block)) continue;
+
     // Clamp to world height
     if (block.y < 0 || block.y >= CHUNK_SIZE_Y) continue;
+
+    // Get or create palette index
+    const key = blockKey(block, options);
+
+    // Also check the converted key in case it's an excluded block
+    const baseKey = key.split("[")[0];
+    const keyWithoutPrefix = baseKey.replace(/^minecraft:/, "");
+    if (EXCLUDED_BLOCKS.has(key) || EXCLUDED_BLOCKS.has(baseKey) || EXCLUDED_BLOCKS.has(keyWithoutPrefix)) {
+      continue;
+    }
 
     nonAirBlocks++;
     maxY = Math.max(maxY, block.y);
     minY = Math.min(minY, block.y);
-
-    // Get or create palette index
-    const key = blockKey(block, options);
     let paletteIdx = paletteMap.get(key);
     if (paletteIdx === undefined) {
       paletteIdx = palette.length;
